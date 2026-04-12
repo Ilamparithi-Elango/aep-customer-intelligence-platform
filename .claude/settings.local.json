@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile data/raw/generate_mock_data.py infrastructure/aws_setup.py pipeline/data_quality.py pipeline/glue_transform.py pipeline/airflow_dag.py llm/prompt_templates.py llm/batch_processor.py agent/tools/metrics_tool.py agent/tools/topic_tool.py agent/query_agent.py security/input_guard.py observability/logger.py dashboard/app.py tests/test_pipeline.py)",
+      "Bash(python data/raw/generate_mock_data.py)",
+      "Bash(python -m pytest tests/test_pipeline.py -v --tb=short)",
+      "Bash(pip install:)",
+      "Bash(pip install:*)",
+      "Read(//tmp/**)"
+    ]
+  }
+}
