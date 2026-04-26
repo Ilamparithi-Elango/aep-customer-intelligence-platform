@@ -135,7 +135,7 @@ def section(title: str) -> None:
 def main() -> None:
     # ── Header ────────────────────────────────────────────────────────────────
     st.title("AEP Customer Intelligence Platform")
-    st.caption("AWS-native AI-powered data pipeline · Simulating Adobe Experience Platform")
+    
 
     # ── Load data ─────────────────────────────────────────────────────────────
     try:
