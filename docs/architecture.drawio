@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-04-25" agent="Claude" version="21.0.0">
+  <diagram id="aep-arch" name="AEP Customer Intelligence Platform">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1"
+                  tooltips="1" connect="1" arrows="1" fold="1" page="1"
+                  pageScale="1" pageWidth="1654" pageHeight="1450"
+                  math="0" shadow="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ═══════════════════════════════════════════════
+             TITLE
+        ═══════════════════════════════════════════════ -->
+        <mxCell id="title" value="AEP Customer Intelligence Platform"
+          style="text;html=1;strokeColor=none;fillColor=none;align=center;
+                 verticalAlign=middle;whiteSpace=wrap;fontSize=22;fontStyle=1;
+                 fontColor=#232F3E;"
+          vertex="1" parent="1">
+          <mxGeometry x="177" y="20" width="1300" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="subtitle" value="AWS-native · AI-powered · Simulates Adobe Experience Platform (AEP)"
+          style="text;html=1;strokeColor=none;fillColor=none;align=center;
+                 verticalAlign=middle;whiteSpace=wrap;fontSize=12;fontStyle=2;
+                 fontColor=#545B64;"
+          vertex="1" parent="1">
+          <mxGeometry x="177" y="58" width="1300" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════
+             SECTION 1 — DATA SOURCES
+        ═══════════════════════════════════════════════ -->
+        <mxCell id="src-group" value="📦  Data Sources  (Mock — 9,000 records / day)"
+          style="swimlane;startSize=32;fillColor=#EBF3FB;strokeColor=#2E75B6;
+                 fontColor=#2E75B6;fontStyle=1;fontSize=11;rounded=1;arcSize=3;
+                 strokeWidth=2;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="100" width="1194" height="145" as="geometry" />
+        </mxCell>
+
+        <mxCell id="chatbot" value="🤖  Chatbot Interactions&#xa;3,000 rows&#xa;&#xa;contact_id · session_id · topic_name&#xa;confidence_score · response_type&#xa;escalated_to_agent · thumbs_up / thumbs_down&#xa;handle_seconds_dur · derived_resolution_score"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;
+                 fontSize=9;align=center;arcSize=10;fontStyle=0;"
+          vertex="1" parent="src-group">
+          <mxGeometry x="18" y="36" width="355" height="95" as="geometry" />
+        </mxCell>
+
+        <mxCell id="click" value="🖱️  Clickstream Events&#xa;3,000 rows&#xa;&#xa;event_type · page_name&#xa;application_channel · business_unit&#xa;scroll_depth_pct · time_on_page_seconds&#xa;is_bounce"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;
+                 fontSize=9;align=center;arcSize=10;fontStyle=0;"
+          vertex="1" parent="src-group">
+          <mxGeometry x="419" y="36" width="355" height="95" as="geometry" />
+        </mxCell>
+
+        <mxCell id="meta" value="📋  Conversation Metadata&#xa;3,000 rows&#xa;&#xa;CSAT score · contained · num_turns&#xa;session_duration_seconds · language&#xa;confidence_score · derived_resolution_score&#xa;queue_name"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;
+                 fontSize=9;align=center;arcSize=10;fontStyle=0;"
+          vertex="1" parent="src-group">
+          <mxGeometry x="820" y="36" width="355" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════
+             AWS CLOUD BOUNDARY (visual box only)
+        ═══════════════════════════════════════════════ -->
+        <mxCell id="aws-cloud" value="☁️  AWS Cloud  |  Region: us-east-1"
+          style="swimlane;startSize=32;fillColor=#FFF8EE;strokeColor=#FF9900;
+                 fontColor=#FF9900;fontStyle=1;fontSize=13;rounded=1;arcSize=2;
+                 strokeWidth=3;dashed=0;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="275" width="1194" height="760" as="geometry" />
+        </mxCell>
+
+        <!-- S3 Raw -->
+        <mxCell id="s3-raw" value="🪣  AWS S3 — raw/&#xa;AES-256 Encrypted · Versioning Enabled · Public Access Blocked&#xa;chatbot_interactions.csv  ·  clickstream_events.csv  ·  conversation_metadata.csv"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=#CC7A00;
+                 fontColor=#000000;fontSize=10;fontStyle=1;align=center;arcSize=10;"
+          vertex="1" parent="aws-cloud">
+          <mxGeometry x="392" y="55" width="410" height="68" as="geometry" />
+        </mxCell>
+
+        <!-- Airflow -->
+        <mxCell id="airflow" value="⏰  Apache Airflow DAG  (MWAA)&#xa;Schedule: Daily @ 02:00 UTC  ·  max_active_runs=1&#xa;check_env → generate → provision → DQ → transform → LLM → notify"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#017CEE;strokeColor=#0057A8;
+                 fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;arcSize=10;"
+          vertex="1" parent="aws-cloud">
+          <mxGeometry x="392" y="168" width="410" height="68" as="geometry" />
+        </mxCell>
+
+        <!-- PySpark Group -->
+        <mxCell id="spark-group" value="⚙️  PySpark Pipeline"
+          style="swimlane;startSize=30;fillColor=#FDEBD0;strokeColor=#E25A1C;
+                 fontColor=#E25A1C;fontStyle=1;fontSize=11;rounded=1;arcSize=4;
+                 strokeWidth=2;"
+          vertex="1" parent="aws-cloud">
+          <mxGeometry x="22" y="282" width="1150" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dq" value="✅  Data Quality Checks  (data_quality.py)&#xa;&#xa;Null checks · Range validation [0.0 – 1.0] · Duplicate detection&#xa;Enum allowlists (business_unit, channel) · Schema validation&#xa;QualityReport with PASS / FAIL per source"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E25A1C;strokeColor=#B84615;
+                 fontColor=#FFFFFF;fontSize=9;align=center;arcSize=10;"
+          vertex="1" parent="spark-group">
+          <mxGeometry x="15" y="33" width="545" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="transform" value="🔀  Glue-style Transform  (glue_transform.py)&#xa;&#xa;LEFT JOIN 3 sources on contact_id + session_id&#xa;Enrich: resolution_tier · session_quality_score · is_self_served&#xa;Output: Snappy Parquet partitioned by year / month / day"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E25A1C;strokeColor=#B84615;
+                 fontColor=#FFFFFF;fontSize=9;align=center;arcSize=10;"
+          vertex="1" parent="spark-group">
+          <mxGeometry x="590" y="33" width="545" height="74" as="geometry" />
+        </mxCell>
+
+        <!-- S3 Processed -->
+        <mxCell id="s3-proc" value="🪣  AWS S3 — processed/&#xa;Snappy-compressed Parquet  ·  Partitioned by year / month / day&#xa;unified_interactions/  —  Joined &amp; enriched data product"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=#CC7A00;
+                 fontColor=#000000;fontSize=10;fontStyle=1;align=center;arcSize=10;"
+          vertex="1" parent="aws-cloud">
+          <mxGeometry x="392" y="448" width="410" height="68" as="geometry" />
+        </mxCell>
+
+        <!-- LLM Group -->
+        <mxCell id="llm-group" value="🧠  OpenAI LLM Enrichment Layer  (GPT-4o-mini)  —  batch_processor.py"
+          style="swimlane;startSize=30;fillColor=#E8F8F5;strokeColor=#10A37F;
+                 fontColor=#10A37F;fontStyle=1;fontSize=11;rounded=1;arcSize=4;
+                 strokeWidth=2;"
+          vertex="1" parent="aws-cloud">
+          <mxGeometry x="22" y="562" width="1150" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="batch" value="⚡  Batch Processor&#xa;ThreadPoolExecutor&#xa;10 concurrent workers&#xa;Cost tracker per call"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#10A37F;strokeColor=#0B7A60;
+                 fontColor=#FFFFFF;fontSize=9;align=center;arcSize=10;"
+          vertex="1" parent="llm-group">
+          <mxGeometry x="15" y="33" width="230" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="summ" value="📝  Summarization&#xa;Template v2  (JSON output)&#xa;summary · core_issue&#xa;outcome · key_entities"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#10A37F;strokeColor=#0B7A60;
+                 fontColor=#FFFFFF;fontSize=9;align=center;arcSize=10;"
+          vertex="1" parent="llm-group">
+          <mxGeometry x="275" y="33" width="255" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="topic-cls" value="🏷️  Topic Classification&#xa;Template v1  (JSON output)&#xa;10 topic categories&#xa;confidence score"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#10A37F;strokeColor=#0B7A60;
+                 fontColor=#FFFFFF;fontSize=9;align=center;arcSize=10;"
+          vertex="1" parent="llm-group">
+          <mxGeometry x="560" y="33" width="255" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sentiment" value="😊  Sentiment Analysis&#xa;Template v1  (JSON output)&#xa;sentiment_score · churn_risk&#xa;frustration_signal"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#10A37F;strokeColor=#0B7A60;
+                 fontColor=#FFFFFF;fontSize=9;align=center;arcSize=10;"
+          vertex="1" parent="llm-group">
+          <mxGeometry x="845" y="33" width="290" height="74" as="geometry" />
+        </mxCell>
+
+        <!-- S3 Results -->
+        <mxCell id="s3-results" value="🪣  AWS S3 — results/&#xa;JSONL Enriched Data  ·  llm_results.jsonl&#xa;LLM summaries  ·  Topic labels  ·  Sentiment scores  ·  Churn risk flags"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=#CC7A00;
+                 fontColor=#000000;fontSize=10;fontStyle=1;align=center;arcSize=10;"
+          vertex="1" parent="aws-cloud">
+          <mxGeometry x="392" y="728" width="410" height="68" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════
+             SECTION 3 — AI & VISUALISATION LAYER
+        ═══════════════════════════════════════════════ -->
+        <mxCell id="consumer-group" value="🎯  AI &amp; Visualisation Layer"
+          style="swimlane;startSize=30;fillColor=#F3EEFF;strokeColor=#5B2DA8;
+                 fontColor=#5B2DA8;fontStyle=1;fontSize=11;rounded=1;arcSize=3;
+                 strokeWidth=2;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="1073" width="1194" height="155" as="geometry" />
+        </mxCell>
+
+        <mxCell id="agent" value="🤖  LangChain ReAct Agent  (query_agent.py)  —  GPT-4o-mini&#xa;&#xa;📈  MetricsTool — containment rate · escalation rate · CSAT · thumbs up/down · avg confidence&#xa;🔥  TopicTool — trending topics · topic escalation · sentiment · week-over-week trend&#xa;&#xa;Natural language Q&amp;A  ·  max_iterations=6  ·  injection-safe input"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1473E6;strokeColor=#0D5BAD;
+                 fontColor=#FFFFFF;fontSize=9;align=center;arcSize=10;"
+          vertex="1" parent="consumer-group">
+          <mxGeometry x="15" y="33" width="563" height="106" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dashboard" value="📊  Streamlit Dashboard  +  Plotly  (app.py)&#xa;&#xa;KPI Cards: containment · escalation · CSAT · confidence · resolution score&#xa;Charts: daily volume · escalation by topic · thumbs feedback · channel breakdown&#xa;Topic Intelligence table  ·  AI Chat Interface (session history)"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6E40C9;strokeColor=#4E2D96;
+                 fontColor=#FFFFFF;fontSize=9;align=center;arcSize=10;"
+          vertex="1" parent="consumer-group">
+          <mxGeometry x="616" y="33" width="563" height="106" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════
+             SECTION 4 — CROSS-CUTTING CONCERNS
+        ═══════════════════════════════════════════════ -->
+        <mxCell id="cross-group" value="🛡️  Cross-cutting Concerns"
+          style="swimlane;startSize=30;fillColor=#FDEDEC;strokeColor=#D13212;
+                 fontColor=#D13212;fontStyle=1;fontSize=11;rounded=1;arcSize=3;
+                 strokeWidth=2;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="1270" width="1194" height="115" as="geometry" />
+        </mxCell>
+
+        <mxCell id="security" value="🔒  Security  (input_guard.py)&#xa;15+ prompt injection patterns  ·  PII masking (API keys, SSN, email)&#xa;Categorical allowlists  ·  500-char input cap  ·  Date format validation"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D13212;strokeColor=#A02510;
+                 fontColor=#FFFFFF;fontSize=9;align=center;arcSize=10;"
+          vertex="1" parent="cross-group">
+          <mxGeometry x="15" y="33" width="563" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="observability" value="📋  Observability  (logger.py)&#xa;JSON structured logging (CloudWatch-compatible)  ·  LLM CostTracker per model&#xa;timed_step decorator  ·  timed_block context manager  ·  PII masking in all log output"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2D9D78;strokeColor=#1F6E54;
+                 fontColor=#FFFFFF;fontSize=9;align=center;arcSize=10;"
+          vertex="1" parent="cross-group">
+          <mxGeometry x="616" y="33" width="563" height="68" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════
+             EDGES / ARROWS
+        ═══════════════════════════════════════════════ -->
+
+        <!-- 3 sources → S3 Raw -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.15;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#2E75B6;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="chatbot" target="s3-raw" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#2E75B6;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="click" target="s3-raw" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.85;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#2E75B6;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="meta" target="s3-raw" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- S3 Raw → Airflow -->
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#FF9900;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="s3-raw" target="airflow" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Airflow → DQ (left branch) -->
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.25;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.25;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#017CEE;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="airflow" target="dq" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Airflow → Transform (right branch) -->
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.75;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.75;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#017CEE;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="airflow" target="transform" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Transform → S3 Processed -->
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#E25A1C;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="transform" target="s3-proc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- S3 Processed → Batch Processor -->
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#FF9900;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="s3-proc" target="batch" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Batch → Summ (dashed) -->
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;strokeColor=#10A37F;strokeWidth=1.5;
+                 dashed=1;endArrow=open;endFill=0;"
+          edge="1" source="batch" target="summ" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Batch → Topic Classification (dashed) -->
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;strokeColor=#10A37F;strokeWidth=1.5;
+                 dashed=1;endArrow=open;endFill=0;"
+          edge="1" source="batch" target="topic-cls" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Batch → Sentiment (dashed) -->
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;strokeColor=#10A37F;strokeWidth=1.5;
+                 dashed=1;endArrow=open;endFill=0;"
+          edge="1" source="batch" target="sentiment" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- LLM outputs → S3 Results -->
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.2;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#10A37F;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="summ" target="s3-results" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#10A37F;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="topic-cls" target="s3-results" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.8;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#10A37F;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="sentiment" target="s3-results" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- S3 Results → Agent -->
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.3;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.3;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#FF9900;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="s3-results" target="agent" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- S3 Results → Dashboard -->
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=0.7;exitY=1;exitDx=0;exitDy=0;
+                 entryX=0.7;entryY=0;entryDx=0;entryDy=0;
+                 strokeColor=#FF9900;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" source="s3-results" target="dashboard" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Agent ↔ Dashboard (bidirectional — AI chat) -->
+        <mxCell id="e17" value="AI Chat"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+                 entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+                 strokeColor=#6E40C9;strokeWidth=2;
+                 startArrow=block;startFill=1;endArrow=block;endFill=1;
+                 fontColor=#6E40C9;fontStyle=1;fontSize=9;"
+          edge="1" source="agent" target="dashboard" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Security wraps Agent (annotation arrow) -->
+        <mxCell id="e18" value="validates input"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+                 jettySize=auto;strokeColor=#D13212;strokeWidth=1.5;
+                 dashed=1;endArrow=open;endFill=0;
+                 fontColor=#D13212;fontStyle=2;fontSize=8;"
+          edge="1" source="security" target="agent" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
