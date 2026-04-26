@@ -135,7 +135,7 @@ Session-level aggregates: CSAT, containment, language, queue.
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/your-username/aep-customer-intelligence-platform.git
+git clone https://github.com/Ilamparithi-Elango/aep-customer-intelligence-platform.git
 cd aep-customer-intelligence-platform
 pip install -r requirements.txt
 ```
