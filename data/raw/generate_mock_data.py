@@ -24,10 +24,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── Constants ────────────────────────────────────────────────────────────────
-
-RANDOM_SEED = 42
-random.seed(RANDOM_SEED)
-np.random.seed(RANDOM_SEED)
+# No fixed random seed — each run produces different data so metrics vary.
 
 NUM_DAYS = 30
 RECORDS_PER_SOURCE = 3000
@@ -76,25 +73,34 @@ def generate_chatbot_interactions(
     if contact_pool is None:
         contact_pool = _contact_ids(n)
 
+    # Pick 2 random topics per run to have elevated escalation — different each time
+    high_escalation_topics = set(random.sample(TOPICS, 2))
+
     records = []
     for _ in range(n):
         contact_id = random.choice(contact_pool)
         session_id = f"SESS-{str(uuid.uuid4())[:8].upper()}"
         topic_name = random.choice(TOPICS)
-        confidence_score = round(np.clip(np.random.normal(0.72, 0.18), 0.0, 1.0), 4)
+
+        # Confidence drawn from a distribution — mean and spread vary each run
+        confidence_mean = random.uniform(0.60, 0.82)
+        confidence_score = round(np.clip(np.random.normal(confidence_mean, 0.18), 0.0, 1.0), 4)
         response_type = random.choice(RESPONSE_TYPES)
 
-        # Thumbs feedback: sparse – only ~15 % of turns get feedback
-        has_feedback = random.random() < 0.15
+        # Thumbs feedback: sparse — feedback rate varies each run (10–25 %)
+        feedback_rate = random.uniform(0.10, 0.25)
+        has_feedback = random.random() < feedback_rate
         thumbs_up = int(has_feedback and random.random() > 0.35)
         thumbs_down = int(has_feedback and thumbs_up == 0)
 
-        # Escalation more likely on low confidence or troubleshooting topics
-        escalation_probability = 0.08
+        # Escalation: base rate varies per run; elevated for low-confidence turns
+        # and for whichever 2 topics were randomly selected as high-escalation
+        base_escalation = random.uniform(0.05, 0.15)
+        escalation_probability = base_escalation
         if confidence_score < 0.50:
-            escalation_probability += 0.20
-        if topic_name in {"Technical Troubleshooting", "Returns & Refunds"}:
-            escalation_probability += 0.10
+            escalation_probability += random.uniform(0.10, 0.25)
+        if topic_name in high_escalation_topics:
+            escalation_probability += random.uniform(0.08, 0.18)
         escalated_to_agent = int(random.random() < escalation_probability)
 
         business_unit = random.choice(BUSINESS_UNITS)
@@ -204,6 +210,11 @@ def generate_conversation_metadata(
     LANGUAGES = ["en", "es", "fr", "de", "ja", "pt", "zh"]
     QUEUE_NAMES = ["Tier1-Support", "Billing-Ops", "Tech-Escalation", "General-Service"]
 
+    # Containment rate and CSAT response rate vary each run
+    containment_threshold = random.uniform(0.55, 0.85)   # e.g. 55–85 % containment
+    csat_response_threshold = random.uniform(0.35, 0.65) # e.g. 35–65 % response rate
+    confidence_mean = random.uniform(0.60, 0.82)
+
     records = []
     for _ in range(n):
         contact_id = random.choice(contact_pool)
@@ -214,16 +225,16 @@ def generate_conversation_metadata(
         language = random.choices(LANGUAGES, weights=[60, 15, 8, 5, 4, 5, 3])[0]
 
         num_turns = random.randint(1, 20)
-        contained = int(random.random() > 0.25)  # 75 % containment rate
+        contained = int(random.random() < containment_threshold)
         escalated_to_agent = int(not contained and random.random() > 0.4)
         csat_score = (
-            round(random.uniform(1.0, 5.0), 1) if random.random() > 0.45 else None
-        )  # ~55 % CSAT response rate
+            round(random.uniform(1.0, 5.0), 1) if random.random() > csat_response_threshold else None
+        )
         queue_name = random.choice(QUEUE_NAMES) if escalated_to_agent else None
         session_duration_seconds = int(
             num_turns * np.random.lognormal(mean=3.8, sigma=0.6)
         )
-        confidence_score = round(np.clip(np.random.normal(0.70, 0.20), 0.0, 1.0), 4)
+        confidence_score = round(np.clip(np.random.normal(confidence_mean, 0.20), 0.0, 1.0), 4)
         derived_resolution_score = round(
             confidence_score * 0.4
             + (contained * 0.3)

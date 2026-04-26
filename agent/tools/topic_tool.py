@@ -64,7 +64,7 @@ class TopicInput(BaseModel):
     )
     include_sentiment: bool = Field(
         default=True,
-        description="Include a simple sentiment breakdown per topic.",
+        description="Include resolution quality breakdown (HIGH/MEDIUM/LOW) per topic based on avg resolution score.",
     )
     include_trend: bool = Field(
         default=False,
@@ -91,13 +91,13 @@ def _filter(df: pd.DataFrame, business_unit: Optional[str], channel: Optional[st
     return df
 
 
-def _sentiment_label(score: float) -> str:
-    """Map a resolution score proxy to a sentiment label."""
+def _resolution_quality_label(score: float) -> str:
+    """Bucket avg resolution score into a quality tier label."""
     if score >= 0.65:
-        return "POSITIVE"
+        return "HIGH"
     if score >= 0.40:
-        return "NEUTRAL"
-    return "NEGATIVE"
+        return "MEDIUM"
+    return "LOW"
 
 
 # ── Core Analysis ─────────────────────────────────────────────────────────────
@@ -166,11 +166,11 @@ def get_trending_topics(
             .reset_index()
         )
         for _, row in meta_agg.iterrows():
-            label = _sentiment_label(row["meta_avg_resolution"])
+            label = _resolution_quality_label(row["meta_avg_resolution"])
             sentiment_map[row["topic_name"]] = {
-                "dominant_sentiment": label,
-                "avg_resolution":    round(row["meta_avg_resolution"], 4),
-                "session_count":     int(row["meta_count"]),
+                "resolution_quality": label,
+                "avg_resolution":     round(row["meta_avg_resolution"], 4),
+                "session_count":      int(row["meta_count"]),
             }
 
     # ── Week-over-week trend ──────────────────────────────────────────────────
@@ -209,7 +209,7 @@ def get_trending_topics(
             "avg_handle_seconds":  float(row["avg_handle_seconds"]),
         }
         if include_sentiment and topic_name in sentiment_map:
-            entry["sentiment"] = sentiment_map[topic_name]
+            entry["resolution_quality_breakdown"] = sentiment_map[topic_name]
         if include_trend:
             entry["wow_trend"] = trend_map.get(topic_name, "UNKNOWN")
 

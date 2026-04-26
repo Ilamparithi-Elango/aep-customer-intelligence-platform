@@ -107,20 +107,35 @@ class UsageTracker:
 
 def build_synthetic_transcript(row: dict) -> str:
     """
-    Construct a minimal synthetic transcript string from structured row fields.
-    In production this would reference the actual raw text stored separately.
+    Construct a minimal synthetic transcript from structured row fields.
+    Topic is intentionally excluded from the transcript text so the LLM
+    classifies it independently — avoiding circular classification.
+    In production this would reference actual raw conversation text.
     """
-    topic   = row.get("topic_name", "General Inquiry")
-    channel = row.get("application_channel", "Web")
-    turns   = row.get("num_turns", 3)
-    outcome = "escalated to a human agent" if row.get("escalated_to_agent", 0) else "self-served"
+    channel   = row.get("application_channel", "Web")
+    turns     = row.get("num_turns", 3)
+    response  = row.get("response_type", "FAQ")
+    conf      = row.get("confidence_score", 0.7)
+    escalated = row.get("escalated_to_agent", 0)
+    thumbs_up = row.get("thumbs_up", 0)
+    thumbs_dn = row.get("thumbs_down", 0)
+
+    outcome = "escalated to a human agent" if escalated else "resolved by the bot"
+    feedback = (
+        "Customer gave a thumbs up at the end." if thumbs_up
+        else "Customer gave a thumbs down." if thumbs_dn
+        else "No explicit feedback given."
+    )
 
     return (
         f"Channel: {channel}\n"
-        f"User: Hello, I need help with my {topic.lower()} issue.\n"
-        f"Bot:  I can help with that. Let me look into your account.\n"
-        f"[… {max(0, int(turns) - 2)} additional turns …]\n"
-        f"Outcome: Session {outcome}."
+        f"Response type: {response}\n"
+        f"Bot confidence: {conf:.2f}\n"
+        f"User: Hi, I need some help with an issue on my account.\n"
+        f"Bot:  Of course, I can assist you with that. Could you provide more details?\n"
+        f"[... {max(0, int(turns) - 2)} additional exchange(s) ...]\n"
+        f"Outcome: Session {outcome}.\n"
+        f"{feedback}"
     )
 
 
