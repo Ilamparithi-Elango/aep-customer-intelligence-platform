@@ -42,6 +42,7 @@ from dotenv import load_dotenv
 from openai import OpenAI, RateLimitError, APIError
 
 from llm.prompt_templates import TemplateKey, get_template
+from observability.logger import CostTracker as _CostTracker, _MODEL_PRICING
 
 load_dotenv()
 
@@ -77,27 +78,29 @@ log = logging.getLogger("batch_processor")
 
 @dataclass
 class UsageTracker:
+    """Lightweight token accumulator — pricing sourced from observability.logger._MODEL_PRICING."""
     prompt_tokens:     int = 0
     completion_tokens: int = 0
     total_cost_usd:    float = 0.0
+    _model:            str = field(default=DEFAULT_MODEL, init=False, repr=False)
 
-    # gpt-4o-mini pricing (per 1M tokens) as of 2025
-    _INPUT_PRICE_PER_M:  float = field(default=0.15,  init=False, repr=False)
-    _OUTPUT_PRICE_PER_M: float = field(default=0.60,  init=False, repr=False)
-
-    def add(self, usage: Any) -> None:
+    def add(self, usage: Any, model: str | None = None) -> None:
         if usage is None:
             return
-        self.prompt_tokens     += getattr(usage, "prompt_tokens",     0)
-        self.completion_tokens += getattr(usage, "completion_tokens", 0)
-        self.total_cost_usd    += (
-            self.prompt_tokens     / 1_000_000 * self._INPUT_PRICE_PER_M
-            + self.completion_tokens / 1_000_000 * self._OUTPUT_PRICE_PER_M
+        pt = getattr(usage, "prompt_tokens",     0)
+        ct = getattr(usage, "completion_tokens", 0)
+        self.prompt_tokens     += pt
+        self.completion_tokens += ct
+        # Pull pricing from the single source of truth in observability.logger
+        pricing = _MODEL_PRICING.get((model or self._model).lower(), {"input": 0.50, "output": 1.50})
+        self.total_cost_usd += (
+            pt / 1_000_000 * pricing["input"]
+            + ct / 1_000_000 * pricing["output"]
         )
 
     def summary(self) -> str:
         return (
-            f"Tokens used — prompt: {self.prompt_tokens:,}, "
+            f"Tokens used \U0001f4ca prompt: {self.prompt_tokens:,}, "
             f"completion: {self.completion_tokens:,}  |  "
             f"Estimated cost: ${self.total_cost_usd:.4f}"
         )

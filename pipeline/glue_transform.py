@@ -202,11 +202,13 @@ def enrich(df: DataFrame) -> DataFrame:
     )
 
     # Session quality score: weighted composite
+    # Null confidence/resolution default to 0.0 (not 0.5) so missing data
+    # doesn't artificially inflate scores
     df = df.withColumn(
         "session_quality_score",
         F.round(
-            F.coalesce(F.col("effective_confidence_score"), F.lit(0.5)) * 0.35
-            + F.coalesce(F.col("derived_resolution_score"), F.lit(0.5)) * 0.35
+            F.coalesce(F.col("effective_confidence_score"), F.lit(0.0)) * 0.35
+            + F.coalesce(F.col("derived_resolution_score"), F.lit(0.0)) * 0.35
             + (1.0 - F.coalesce(F.col("escalated_to_agent"), F.lit(0)).cast(DoubleType())) * 0.15
             + F.coalesce(F.col("thumbs_up"), F.lit(0)).cast(DoubleType()) * 0.15,
             4,

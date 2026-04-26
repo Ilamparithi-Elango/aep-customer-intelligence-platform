@@ -73,8 +73,12 @@ def generate_chatbot_interactions(
     if contact_pool is None:
         contact_pool = _contact_ids(n)
 
-    # Pick 2 random topics per run to have elevated escalation — different each time
-    high_escalation_topics = set(random.sample(TOPICS, 2))
+    # ── Per-run parameters (set once, applied consistently to all records) ───────
+    high_escalation_topics = set(random.sample(TOPICS, 2))  # 2 random topics per run
+    confidence_mean   = random.uniform(0.60, 0.82)          # varies per run
+    feedback_rate     = random.uniform(0.10, 0.25)          # varies per run
+    base_escalation   = random.uniform(0.05, 0.15)          # varies per run
+    escalation_multiplier = random.uniform(1.8, 3.2)        # handle-time boost for escalations
 
     records = []
     for _ in range(n):
@@ -82,33 +86,28 @@ def generate_chatbot_interactions(
         session_id = f"SESS-{str(uuid.uuid4())[:8].upper()}"
         topic_name = random.choice(TOPICS)
 
-        # Confidence drawn from a distribution — mean and spread vary each run
-        confidence_mean = random.uniform(0.60, 0.82)
         confidence_score = round(np.clip(np.random.normal(confidence_mean, 0.18), 0.0, 1.0), 4)
         response_type = random.choice(RESPONSE_TYPES)
 
-        # Thumbs feedback: sparse — feedback rate varies each run (10–25 %)
-        feedback_rate = random.uniform(0.10, 0.25)
+        # Thumbs feedback: sparse — rate set once per run
         has_feedback = random.random() < feedback_rate
         thumbs_up = int(has_feedback and random.random() > 0.35)
         thumbs_down = int(has_feedback and thumbs_up == 0)
 
-        # Escalation: base rate varies per run; elevated for low-confidence turns
-        # and for whichever 2 topics were randomly selected as high-escalation
-        base_escalation = random.uniform(0.05, 0.15)
+        # Escalation probability built from per-run base + per-record signals
         escalation_probability = base_escalation
         if confidence_score < 0.50:
             escalation_probability += random.uniform(0.10, 0.25)
         if topic_name in high_escalation_topics:
             escalation_probability += random.uniform(0.08, 0.18)
-        escalated_to_agent = int(random.random() < escalation_probability)
+        escalated_to_agent = int(random.random() < min(escalation_probability, 1.0))
 
         business_unit = random.choice(BUSINESS_UNITS)
         application_channel = random.choice(APPLICATION_CHANNELS)
 
-        # Handle duration: lognormal, skewed longer for escalations
+        # Handle duration: lognormal, escalations are longer by a run-varying multiplier
         base_seconds = np.random.lognormal(mean=4.2, sigma=0.8)
-        handle_seconds_dur = int(base_seconds * (2.5 if escalated_to_agent else 1.0))
+        handle_seconds_dur = int(base_seconds * (escalation_multiplier if escalated_to_agent else 1.0))
 
         # Derived resolution score: composite heuristic
         derived_resolution_score = round(
@@ -210,10 +209,11 @@ def generate_conversation_metadata(
     LANGUAGES = ["en", "es", "fr", "de", "ja", "pt", "zh"]
     QUEUE_NAMES = ["Tier1-Support", "Billing-Ops", "Tech-Escalation", "General-Service"]
 
-    # Containment rate and CSAT response rate vary each run
-    containment_threshold = random.uniform(0.55, 0.85)   # e.g. 55–85 % containment
-    csat_response_threshold = random.uniform(0.35, 0.65) # e.g. 35–65 % response rate
-    confidence_mean = random.uniform(0.60, 0.82)
+    # ── Per-run parameters ────────────────────────────────────────────────────
+    containment_threshold    = random.uniform(0.55, 0.85)  # varies per run
+    csat_response_threshold  = random.uniform(0.35, 0.65)  # varies per run
+    confidence_mean          = random.uniform(0.60, 0.82)  # varies per run
+    escalation_of_uncontained = random.uniform(0.30, 0.65) # % of non-contained that escalate
 
     records = []
     for _ in range(n):
@@ -226,7 +226,7 @@ def generate_conversation_metadata(
 
         num_turns = random.randint(1, 20)
         contained = int(random.random() < containment_threshold)
-        escalated_to_agent = int(not contained and random.random() > 0.4)
+        escalated_to_agent = int(not contained and random.random() < escalation_of_uncontained)
         csat_score = (
             round(random.uniform(1.0, 5.0), 1) if random.random() > csat_response_threshold else None
         )
@@ -235,10 +235,12 @@ def generate_conversation_metadata(
             num_turns * np.random.lognormal(mean=3.8, sigma=0.6)
         )
         confidence_score = round(np.clip(np.random.normal(confidence_mean, 0.20), 0.0, 1.0), 4)
+        # When CSAT is missing, use confidence score as a proxy (no fixed imputation)
+        csat_proxy = (csat_score / 5.0) if csat_score is not None else confidence_score
         derived_resolution_score = round(
             confidence_score * 0.4
             + (contained * 0.3)
-            + ((csat_score or 3.0) / 5.0) * 0.3,
+            + csat_proxy * 0.3,
             4,
         )
         session_start = _random_date(START_DATE, NUM_DAYS)
