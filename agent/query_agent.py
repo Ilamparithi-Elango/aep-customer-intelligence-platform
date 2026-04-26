@@ -27,9 +27,9 @@ import os
 import sys
 
 from dotenv import load_dotenv
-from langchain.agents import AgentExecutor, create_react_agent
-from langchain.prompts import PromptTemplate
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
+from langgraph.prebuilt import create_react_agent
 
 from agent.tools.metrics_tool import MetricsTool
 from agent.tools.topic_tool import TopicTool
@@ -65,30 +65,13 @@ RULES:
 - If a filter (business unit, channel, date) is mentioned, pass it to the tool.
 - Do not fabricate numbers. If data is unavailable, say so.
 - Keep answers concise — 3–5 sentences maximum unless the user asks for detail.
-- When listing topics or metrics, use a numbered or bulleted list.
-
-{tools}
-
-Use the following format:
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat N times)
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
-
-Begin!
-
-Question: {input}
-Thought:{agent_scratchpad}"""
+- When listing topics or metrics, use a numbered or bulleted list."""
 
 
 # ── Agent Factory ─────────────────────────────────────────────────────────────
 
-def build_agent() -> AgentExecutor:
-    """Construct and return the LangChain ReAct agent."""
+def build_agent():
+    """Construct and return the LangGraph ReAct agent."""
     if not OPENAI_API_KEY:
         raise EnvironmentError(
             "OPENAI_API_KEY is not set. Add it to your .env file."
@@ -102,29 +85,22 @@ def build_agent() -> AgentExecutor:
 
     tools = [MetricsTool(), TopicTool()]
 
-    prompt = PromptTemplate.from_template(SYSTEM_PROMPT)
-
-    agent = create_react_agent(llm=llm, tools=tools, prompt=prompt)
-
-    return AgentExecutor(
-        agent=agent,
+    return create_react_agent(
+        model=llm,
         tools=tools,
-        max_iterations=MAX_ITERATIONS,
-        verbose=VERBOSE,
-        handle_parsing_errors=True,
-        return_intermediate_steps=False,
+        prompt=SYSTEM_PROMPT,
     )
 
 
 # ── Public Query Interface ────────────────────────────────────────────────────
 
-def ask(question: str, executor: AgentExecutor | None = None) -> str:
+def ask(question: str, executor=None) -> str:
     """
     Ask the agent a natural-language question about AEP data.
 
     Args:
         question:  The user's question string.
-        executor:  Optionally pass a pre-built AgentExecutor (avoids rebuilding).
+        executor:  Optionally pass a pre-built agent graph (avoids rebuilding).
 
     Returns:
         The agent's answer as a string.
@@ -142,8 +118,11 @@ def ask(question: str, executor: AgentExecutor | None = None) -> str:
     log.info("Agent query: %s", clean_question)
 
     try:
-        result = executor.invoke({"input": clean_question})
-        answer = result.get("output", "No answer returned.")
+        result = executor.invoke(
+            {"messages": [HumanMessage(content=clean_question)]}
+        )
+        # Last message in the graph output is the final answer
+        answer = result["messages"][-1].content
         log.info("Agent answer: %s", answer[:200])
         return answer
     except Exception as exc:

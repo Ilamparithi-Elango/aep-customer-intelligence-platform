@@ -123,14 +123,7 @@ st.markdown(
 
 
 def kpi_card(label: str, value: str, delta: str = "") -> None:
-    st.markdown(
-        f"""<div class="kpi-card">
-            <div class="kpi-label">{label}</div>
-            <div class="kpi-value">{value}</div>
-            {"<div class='kpi-delta'>" + delta + "</div>" if delta else ""}
-        </div>""",
-        unsafe_allow_html=True,
-    )
+    st.metric(label=label, value=value, delta=delta if delta else None)
 
 
 def section(title: str) -> None:
@@ -164,12 +157,17 @@ def main() -> None:
 
     min_date = df_chat_raw["created_at"].dt.date.min()
     max_date = df_chat_raw["created_at"].dt.date.max()
-    start_date, end_date = st.sidebar.date_input(
+    date_range = st.sidebar.date_input(
         "Date Range",
         value=(min_date, max_date),
         min_value=min_date,
         max_value=max_date,
     )
+    # Handle single-date selection (user is mid-pick)
+    if isinstance(date_range, (list, tuple)) and len(date_range) == 2:
+        start_date, end_date = date_range
+    else:
+        start_date = end_date = date_range if not isinstance(date_range, (list, tuple)) else date_range[0]
 
     st.sidebar.markdown("---")
     st.sidebar.markdown(
