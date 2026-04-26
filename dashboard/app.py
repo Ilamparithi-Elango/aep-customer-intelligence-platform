@@ -169,15 +169,7 @@ def main() -> None:
     else:
         start_date = end_date = date_range if not isinstance(date_range, (list, tuple)) else date_range[0]
 
-    st.sidebar.markdown("---")
-    st.sidebar.markdown(
-        "**Tech Stack**\n"
-        "- AWS S3 · PySpark · Airflow\n"
-        "- OpenAI GPT-4o-mini\n"
-        "- LangChain · Streamlit\n"
-        "- Python · Pandas · Plotly"
-    )
-
+    
     # ── Apply filters ─────────────────────────────────────────────────────────
     df_chat, df_meta = apply_filters(
         df_chat_raw, df_meta_raw,

@@ -25,7 +25,8 @@
       "Bash(python -c \"import openai; print\\('openai upgraded to:', openai.__version__\\)\")",
       "Bash(echo \"exit: $?\")",
       "Bash(pip3 install *)",
-      "Bash(python -m pip install --upgrade langchain-openai langchain langchain-community)"
+      "Bash(python -m pip install --upgrade langchain-openai langchain langchain-community)",
+      "Bash(PYTHONPATH=. python -m streamlit run dashboard/app.py)"
     ]
   }
 }
