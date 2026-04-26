@@ -6,7 +6,26 @@
       "Bash(python -m pytest tests/test_pipeline.py -v --tb=short)",
       "Bash(pip install:)",
       "Bash(pip install:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(gh api *)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "mcp__mcp-registry__search_mcp_registry",
+      "Bash(git pull *)",
+      "Bash(python -c \"import boto3; print\\('boto3 OK'\\)\")",
+      "Bash(python -c \"import pyspark; print\\('pyspark OK'\\)\")",
+      "Bash(python -c \"import openai; print\\('openai OK'\\)\")",
+      "Bash(python -c \"import langchain; print\\('langchain OK'\\)\")",
+      "Bash(python -c \"import streamlit; print\\('streamlit OK'\\)\")",
+      "Bash(java -version)",
+      "Bash(python -c \"import pyspark; sc = __import__\\('pyspark'\\).SparkContext.getOrCreate\\(\\); print\\('Spark started OK'\\); sc.stop\\(\\)\")",
+      "Bash(python -c \"import openai; print\\('openai upgraded to:', openai.__version__\\)\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(pip3 install *)",
+      "Bash(python -m pip install --upgrade langchain-openai langchain langchain-community)"
     ]
   }
 }
