@@ -118,7 +118,7 @@ Session-level aggregates: CSAT, containment, language, queue.
 | **Containment Rate** | % of sessions resolved without human escalation |
 | **Escalation Rate** | % of sessions/turns handed off to a live agent |
 | **Thumbs-Up Rate** | Positive feedback / total rated turns |
-| **Resolution Score** | Composite: confidence × 0.5 + feedback + containment |
+| **Resolution Score** | Composite: confidence × 0.5 + thumbs_up × 0.3 − thumbs_down × 0.2 − escalated × 0.15 |
 | **CSAT Score** | Customer satisfaction 1–5 (session-level) |
 | **Avg Confidence** | Mean NLU model confidence score across turns |
 
@@ -143,8 +143,11 @@ pip install -r requirements.txt
 ### 2. Configure environment
 
 ```bash
+# Mac/Linux
 cp .env.example .env
-# Edit .env and fill in your values
+
+# Windows
+copy .env.example .env
 ```
 
 ```env
@@ -192,7 +195,7 @@ python llm/batch_processor.py --local --limit 50
 
 ```bash
 streamlit run dashboard/app.py
-# Opens at http://localhost:8501
+# Opens at http://localhost:8501 (auto-increments to 8502/8503/… if port is in use)
 ```
 
 ### 8. Query the AI agent (CLI)
@@ -212,25 +215,30 @@ pytest tests/ -v
 
 ## Example Agent Queries
 
+The agent queries live data — exact numbers vary per run since mock data is
+regenerated with randomised parameters each time. Typical responses look like:
+
 ```
 "What is the overall containment rate?"
-→ The overall containment rate is 74.8% across all sessions.
+→ The overall containment rate is 69–79% (shifts each run based on
+  randomised containment thresholds in the mock data generator).
 
 "Which topic has the highest escalation rate?"
-→ Technical Troubleshooting has the highest escalation rate at 28.3%, followed
-  by Returns & Refunds at 22.1%.
+→ Escalation leaders shift each run — typically 2–3 topics cluster
+  between 15–30% escalation rate depending on which topics were
+  designated high-escalation for that generation run.
 
 "What is the thumbs-up rate on Mobile App?"
-→ On Mobile App, the thumbs-up rate is 67.4% (of rated turns).
+→ On Mobile App, the thumbs-up rate is typically 10–25% (of rated turns),
+  reflecting the sparse feedback rate modelled in the dataset.
 
 "Show me the top 3 topics for Healthcare sorted by escalation."
-→ For Healthcare:
-  1. Technical Troubleshooting – 31.2% escalation rate
-  2. Returns & Refunds – 24.8% escalation rate
-  3. Billing Inquiry – 18.5% escalation rate
+→ For Healthcare, the top 3 escalating topics with their rates are
+  returned live from the dataset — rankings vary per run.
 
 "What is the average confidence score this week?"
-→ The average NLU confidence score is 0.7214.
+→ Average NLU confidence is typically in the 0.65–0.82 range,
+  drawn from a normal distribution centred at a run-varying mean.
 ```
 
 ---
