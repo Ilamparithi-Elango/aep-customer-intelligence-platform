@@ -23,7 +23,7 @@ The entire stack runs on AWS. Orchestration is handled by an Airflow DAG that ki
 
 Here's the architecture:
 
-![AEP Customer Intelligence Platform AWS Architecture](AEP_Customer_Intelligence_platform.png)
+![AEP Customer Intelligence Platform AWS Architecture](https://raw.githubusercontent.com/Ilamparithi-Elango/aep-customer-intelligence-platform/main/docs/AEP_Customer_Intelligence_platform.png)
 
 ---
 
