@@ -26,7 +26,8 @@
       "Bash(echo \"exit: $?\")",
       "Bash(pip3 install *)",
       "Bash(python -m pip install --upgrade langchain-openai langchain langchain-community)",
-      "Bash(PYTHONPATH=. python -m streamlit run dashboard/app.py)"
+      "Bash(PYTHONPATH=. python -m streamlit run dashboard/app.py)",
+      "Bash(python -c ' *)"
     ]
   }
 }
